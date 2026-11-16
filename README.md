@@ -2,6 +2,8 @@
 
 Herramienta de evaluación formativa con método socrático para alumnado de **Tecnología e Ingeniería (1.º de Bachillerato, Canarias)**, construida con Next.js (App Router, TypeScript), Tailwind CSS, componentes estilo shadcn/ui, Lucide React y el SDK oficial `@google/genai`.
 
+**Web y agente desarrollados por:** Alejandro Pérez Sánchez.
+
 ## Características principales
 
 - **Sin base de datos ni registro**: historial temporal únicamente en la memoria de la pestaña abierta.

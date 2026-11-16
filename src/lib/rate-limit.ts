@@ -17,7 +17,7 @@ export interface RateLimitResult {
 }
 
 export function checkRateLimit(identifier: string): RateLimitResult {
-  const maxRequests = parsePositiveInt(process.env.RATE_LIMIT_MAX_REQUESTS, 20);
+  const maxRequests = parsePositiveInt(process.env.RATE_LIMIT_MAX_REQUESTS, 15);
   const windowMs = parsePositiveInt(process.env.RATE_LIMIT_WINDOW_MS, 60_000);
   const now = Date.now();
 

@@ -212,14 +212,15 @@ export async function evaluateWithGemini({
   contents.push({ role: "user", parts: currentParts });
 
   const candidateModels = Array.from(
-    new Set([requestedModel, "gemini-flash-lite-latest"])
-  ).slice(0, 2);
+    new Set([requestedModel, "gemini-flash-lite-latest", "gemini-3.5-flash"])
+  ).slice(0, 3);
 
   let response: Awaited<ReturnType<typeof ai.models.generateContent>> | null =
     null;
   let lastError: unknown = null;
 
-  for (const candidateModel of candidateModels) {
+  for (let i = 0; i < candidateModels.length; i++) {
+    const candidateModel = candidateModels[i];
     try {
       response = await ai.models.generateContent({
         model: candidateModel,
@@ -228,7 +229,7 @@ export async function evaluateWithGemini({
           systemInstruction: PROTECTED_SYSTEM_PROMPT,
           responseMimeType: "application/json",
           responseSchema: EVALUATION_SCHEMA,
-          temperature: 0.25,
+          temperature: 0.15,
         },
       });
       break;
@@ -239,10 +240,16 @@ export async function evaluateWithGemini({
         msg.includes("404") ||
         msg.includes("not_found") ||
         msg.includes("no longer available") ||
+        msg.includes("429") ||
+        msg.includes("resource_exhausted") ||
         msg.includes("503") ||
         msg.includes("unavailable");
       if (!isModelOrTransient) {
         throw err;
+      }
+      // Breve pausa antes de probar el modelo alternativo si hubo saturación
+      if (i < candidateModels.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 600));
       }
     }
   }

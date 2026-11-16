@@ -519,7 +519,10 @@ export function TutorChatApp() {
           <p className="mt-2 text-center text-[11px] leading-snug text-[#64748B]">
             No incluyas nombres ni datos personales. La evaluación es orientativa.
             Los envíos se procesan mediante la API de Google Gemini según sus
-            condiciones aplicables.
+            condiciones aplicables. ·{" "}
+            <span className="font-medium text-[#475569]">
+              Web y agente desarrollados por Alejandro Pérez Sánchez
+            </span>
           </p>
         </div>
       </footer>
