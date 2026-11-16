@@ -148,7 +148,7 @@ export async function evaluateWithGemini({
   history,
 }: EvaluateWithGeminiParams): Promise<StructuredEvaluation> {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
-  const model = process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash";
+  const requestedModel = process.env.GEMINI_MODEL?.trim() || "gemini-3.8-flash";
 
   if (!apiKey) {
     throw new Error("MISSING_API_KEY");
@@ -205,16 +205,47 @@ export async function evaluateWithGemini({
   currentParts.push({ text: userPrompt });
   contents.push({ role: "user", parts: currentParts });
 
-  const response = await ai.models.generateContent({
-    model,
-    contents,
-    config: {
-      systemInstruction: PROTECTED_SYSTEM_PROMPT,
-      responseMimeType: "application/json",
-      responseSchema: EVALUATION_SCHEMA,
-      temperature: 0.25,
-    },
-  });
+  const candidateModels = Array.from(
+    new Set([requestedModel, "gemini-3.8-flash", "gemini-flash-latest"])
+  );
+
+  let response: Awaited<ReturnType<typeof ai.models.generateContent>> | null =
+    null;
+  let lastError: unknown = null;
+
+  for (const candidateModel of candidateModels) {
+    try {
+      response = await ai.models.generateContent({
+        model: candidateModel,
+        contents,
+        config: {
+          systemInstruction: PROTECTED_SYSTEM_PROMPT,
+          responseMimeType: "application/json",
+          responseSchema: EVALUATION_SCHEMA,
+          temperature: 0.25,
+        },
+      });
+      break;
+    } catch (err) {
+      lastError = err;
+      const msg = err instanceof Error ? err.message.toLowerCase() : "";
+      const isModelOrTransient =
+        msg.includes("404") ||
+        msg.includes("not_found") ||
+        msg.includes("no longer available") ||
+        msg.includes("503") ||
+        msg.includes("unavailable");
+      if (!isModelOrTransient) {
+        throw err;
+      }
+    }
+  }
+
+  if (!response) {
+    throw lastError instanceof Error
+      ? lastError
+      : new Error("EMPTY_GEMINI_RESPONSE");
+  }
 
   const rawText = response.text;
   if (!rawText) {

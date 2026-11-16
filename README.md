@@ -39,12 +39,12 @@ cp .env.example .env.local
 
 ```env
 GEMINI_API_KEY=tu_clave_real_de_google_ai_studio
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.8-flash
 RATE_LIMIT_MAX_REQUESTS=20
 RATE_LIMIT_WINDOW_MS=60000
 ```
 
-> **Modelos recomendados**: `gemini-2.5-flash` (rápido y económico, compatible con PDF y salida JSON estructurada) o `gemini-2.5-pro` (análisis más profundo).
+> **Modelos recomendados**: `gemini-3.8-flash` (rápido y económico, compatible con PDF y salida JSON estructurada) o `gemini-pro-latest` (análisis más profundo).
 
 5. Inicia el servidor de desarrollo:
 

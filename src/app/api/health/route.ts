@@ -32,7 +32,7 @@ export async function GET() {
     {
       integrityOk: true,
       apiKeyConfigured: Boolean(process.env.GEMINI_API_KEY?.trim()),
-      model: process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash",
+      model: process.env.GEMINI_MODEL?.trim() || "gemini-3.8-flash",
       version: CORRECTOR_VERSION,
     },
     {
