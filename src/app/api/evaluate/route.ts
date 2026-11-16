@@ -21,6 +21,7 @@ import type {
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const NO_CACHE_HEADERS = {
   "Cache-Control": "no-store, no-cache, must-revalidate, private",
@@ -201,6 +202,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "UNKNOWN_ERROR";
+    const lower = message.toLowerCase();
 
     if (message === "MISSING_API_KEY") {
       return NextResponse.json(
@@ -209,6 +211,49 @@ export async function POST(request: NextRequest) {
             "Falta configurar la variable de entorno GEMINI_API_KEY en el servidor.",
         },
         { status: 503, headers: NO_CACHE_HEADERS }
+      );
+    }
+
+    if (
+      lower.includes("api_key_invalid") ||
+      lower.includes("api key not valid") ||
+      lower.includes("permission_denied") ||
+      lower.includes("401") ||
+      lower.includes("403")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "La clave GEMINI_API_KEY configurada en Vercel no es válida para Gemini API. Verifica en Google AI Studio que tu clave empiece por AIza... y redeploya.",
+        },
+        { status: 401, headers: NO_CACHE_HEADERS }
+      );
+    }
+
+    if (
+      lower.includes("resource_exhausted") ||
+      lower.includes("quota") ||
+      lower.includes("429")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Se ha superado temporalmente la cuota de Gemini API. Espera unos segundos o revisa los límites en Google AI Studio.",
+        },
+        { status: 429, headers: NO_CACHE_HEADERS }
+      );
+    }
+
+    if (
+      (lower.includes("model") && lower.includes("not found")) ||
+      lower.includes("404")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "El modelo configurado en GEMINI_MODEL no está disponible. Prueba a configurar GEMINI_MODEL=gemini-2.5-flash en Vercel.",
+        },
+        { status: 400, headers: NO_CACHE_HEADERS }
       );
     }
 
