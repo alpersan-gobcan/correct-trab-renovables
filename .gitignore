@@ -1,0 +1,21 @@
+# Dependencias y build
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# Variables de entorno y secretos (NUNCA subir a GitHub)
+.env
+.env*.local
+.env.production
+
+# Logs y temporales
+*.log
+npm-debug.log*
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel
+.vercel
