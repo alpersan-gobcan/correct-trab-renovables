@@ -159,7 +159,7 @@ export async function evaluateWithGemini({
 
   const ai = new GoogleGenAI({
     apiKey,
-    httpOptions: { timeout: 25_000 },
+    httpOptions: { timeout: 55_000 },
   });
 
   const modeInstruction =
@@ -213,7 +213,7 @@ export async function evaluateWithGemini({
 
   const candidateModels = Array.from(
     new Set([requestedModel, "gemini-flash-lite-latest", "gemini-3.5-flash"])
-  ).slice(0, 3);
+  ).slice(0, 2);
 
   let response: Awaited<ReturnType<typeof ai.models.generateContent>> | null =
     null;
@@ -230,6 +230,7 @@ export async function evaluateWithGemini({
           responseMimeType: "application/json",
           responseSchema: EVALUATION_SCHEMA,
           temperature: 0.15,
+          maxOutputTokens: 4096,
         },
       });
       break;
@@ -247,7 +248,6 @@ export async function evaluateWithGemini({
       if (!isModelOrTransient) {
         throw err;
       }
-      // Breve pausa antes de probar el modelo alternativo si hubo saturación
       if (i < candidateModels.length - 1) {
         await new Promise((resolve) => setTimeout(resolve, 600));
       }
@@ -265,7 +265,12 @@ export async function evaluateWithGemini({
     throw new Error("EMPTY_GEMINI_RESPONSE");
   }
 
-  const parsed = JSON.parse(rawText) as Omit<
+  const cleanedJson = rawText
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "");
+
+  const parsed = JSON.parse(cleanedJson) as Omit<
     StructuredEvaluation,
     "correctorVersion" | "submissionMode"
   >;

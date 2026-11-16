@@ -271,6 +271,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (
+      lower.includes("timeout") ||
+      lower.includes("timed out") ||
+      lower.includes("abort")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "El análisis del documento tardó más de lo permitido. Si es un PDF extenso, prueba a enviar primero un apartado concreto o inténtalo de nuevo en unos segundos.",
+        },
+        { status: 504, headers: NO_CACHE_HEADERS }
+      );
+    }
+
     return NextResponse.json(
       {
         error:
