@@ -191,26 +191,34 @@ export function TutorChatApp() {
         cache: "no-store",
       });
 
-      const payload = (await response.json()) as StructuredEvaluation & {
-        error?: string;
-      };
+      const rawBody = await response.text();
+      let payload: (StructuredEvaluation & { error?: string }) | null = null;
+      try {
+        payload = JSON.parse(rawBody) as StructuredEvaluation & {
+          error?: string;
+        };
+      } catch {
+        payload = null;
+      }
 
-      if (!response.ok) {
+      if (!response.ok || !payload) {
         if (
-          payload.error &&
+          payload?.error &&
           payload.error.startsWith("ERROR DE INTEGRIDAD:")
         ) {
           setIntegrityError(payload.error);
         }
+        const fallbackError =
+          response.status === 504
+            ? "El servidor tardó demasiado en responder (timeout). Es posible que Gemini tenga alta demanda temporal; inténtalo de nuevo en unos segundos."
+            : "No se pudo completar la evaluación. Inténtalo de nuevo.";
         setMessages((prev) => [
           ...prev,
           {
             id: `err-${Date.now()}`,
             role: "assistant",
             content: "",
-            error:
-              payload.error ||
-              "No se pudo completar la evaluación. Inténtalo de nuevo.",
+            error: payload?.error || fallbackError,
             createdAt: Date.now(),
           },
         ]);

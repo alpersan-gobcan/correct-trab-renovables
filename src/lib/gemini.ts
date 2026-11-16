@@ -148,13 +148,19 @@ export async function evaluateWithGemini({
   history,
 }: EvaluateWithGeminiParams): Promise<StructuredEvaluation> {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
-  const requestedModel = process.env.GEMINI_MODEL?.trim() || "gemini-3.8-flash";
+  const envModel = process.env.GEMINI_MODEL?.trim();
+  // Evitar gemini-2.5-flash si quedó configurado de versiones anteriores (devuelve 404 para cuentas nuevas)
+  const requestedModel =
+    envModel && envModel !== "gemini-2.5-flash" ? envModel : "gemini-3.5-flash";
 
   if (!apiKey) {
     throw new Error("MISSING_API_KEY");
   }
 
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({
+    apiKey,
+    httpOptions: { timeout: 25_000 },
+  });
 
   const modeInstruction =
     mode === "full_document"
@@ -206,8 +212,8 @@ export async function evaluateWithGemini({
   contents.push({ role: "user", parts: currentParts });
 
   const candidateModels = Array.from(
-    new Set([requestedModel, "gemini-3.8-flash", "gemini-flash-latest"])
-  );
+    new Set([requestedModel, "gemini-flash-lite-latest"])
+  ).slice(0, 2);
 
   let response: Awaited<ReturnType<typeof ai.models.generateContent>> | null =
     null;

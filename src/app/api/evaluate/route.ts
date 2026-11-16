@@ -251,9 +251,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "El modelo configurado en GEMINI_MODEL no está disponible. Prueba a configurar GEMINI_MODEL=gemini-2.5-flash en Vercel.",
+            "El modelo configurado en GEMINI_MODEL no está disponible. Prueba a configurar GEMINI_MODEL=gemini-3.5-flash en Vercel.",
         },
         { status: 400, headers: NO_CACHE_HEADERS }
+      );
+    }
+
+    if (
+      lower.includes("unavailable") ||
+      lower.includes("high demand") ||
+      lower.includes("503")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Los servidores de Gemini están experimentando un pico temporal de demanda. Inténtalo de nuevo en unos segundos.",
+        },
+        { status: 503, headers: NO_CACHE_HEADERS }
       );
     }
 
